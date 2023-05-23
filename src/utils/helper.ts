@@ -85,12 +85,11 @@ export const isValideData = ({pays, codePostal, limitResult}): {status: boolean,
     return {status: true}
 }
 
-export const dateFormat = (hourString: string) => {
+export const dateFormat = (hourString: string) : string => {
   return hourString.slice(0, 2).padStart(2, '0') + "h" + hourString.slice(2, 4);
 }
 
-export const arrayHorraire = (pointsRelay: Object) => {
-  const horraires = [];
+export const formatePointRelay = (pointsRelay: Object): Object => {
   Object.entries(pointsRelay).forEach(([i, value]) => {
     const valueLundiMatin = value['Horaires_Lundi']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Lundi']['string'][0])}-${dateFormat(value['Horaires_Lundi']['string'][1])}`;
     const valueLundiApresMidi = value['Horaires_Lundi']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Lundi']['string'][2])}-${dateFormat(value['Horaires_Lundi']['string'][3])}`;
@@ -113,38 +112,46 @@ export const arrayHorraire = (pointsRelay: Object) => {
     const valueDimancheMatin = value['Horaires_Dimanche']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Dimanche']['string'][0])}-${dateFormat(value['Horaires_Dimanche']['string'][1])}`;
     const valueDimancheApresMidi = value['Horaires_Dimanche']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Dimanche']['string'][2])}-${dateFormat(value['Horaires_Dimanche']['string'][3])}`;
     
-    const horraire = {
-      lundi: {
-        matin: valueLundiMatin,
-        apresMidi: valueLundiApresMidi,
+      delete value['Horaires_Lundi']
+      delete value['Horaires_Mardi']
+      delete value['Horaires_Mercredi']
+      delete value['Horaires_Jeudi']
+      delete value['Horaires_Vendredi']
+      delete value['Horaires_Samedi']
+      delete value['Horaires_Dimanche']
+
+  
+    const horaires = {
+      Lundi: {
+        Matin: valueLundiMatin,
+        ApresMidi: valueLundiApresMidi,
       },
-      mardi: {
-        matin: valueMardiMatin,
-        apresMidi: valueMardiApresMidi,
+      Mardi: {
+        Matin: valueMardiMatin,
+        ApresMidi: valueMardiApresMidi,
       },
-      mercredi: {
-        matin: valueMercrediMatin,
-        apresMidi: valueMercrediApresMidi,
+      Mercredi: {
+        Matin: valueMercrediMatin,
+        ApresMidi: valueMercrediApresMidi,
       },
-      jeudi: {
-        matin: valueJeudiMatin,
-        apresMidi: valueJeudiApresMidi,
+      Jeudi: {
+        Matin: valueJeudiMatin,
+        ApresMidi: valueJeudiApresMidi,
       },
-      vendredi: {
-        matin: valueVendrediMatin,
-        apresMidi: valueVendrediApresMidi,
+      Vendredi: {
+        Matin: valueVendrediMatin,
+        ApresMidi: valueVendrediApresMidi,
       },
-      samedi: {
-        matin: valueSamediMatin,
-        apresMidi: valueSamediApresMidi,
+      Samedi: {
+        Matin: valueSamediMatin,
+        ApresMidi: valueSamediApresMidi,
       },
-      dimanche: {
-        matin: valueDimancheMatin,
-        apresMidi: valueDimancheApresMidi,
+      Dimanche: {
+        Matin: valueDimancheMatin,
+        ApresMidi: valueDimancheApresMidi,
       },
     }
-
-    horraires.push(horraire);
+    value['Horaires'] = horaires
   })
-  return horraires;
+  return pointsRelay;
 }
