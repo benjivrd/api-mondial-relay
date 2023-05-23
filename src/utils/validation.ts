@@ -1,10 +1,12 @@
 import Joi from "joi";
+import { RelaySearchType } from "../type/RelaySearchType";
+import { RelayCreateTicketType } from "../type/RelayCreateTicketType";
 
 export const isValideSearchRelayData = ({
   pays,
   codePostal,
   limitResult,
-}): { status: boolean; messages?: Array<string> } => {
+}: RelaySearchType): { status: boolean; messages?: Array<string> } => {
   const schema = Joi.object({
     pays: Joi.string()
       .alphanum()
@@ -42,7 +44,7 @@ export const isValideSearchRelayData = ({
       }),
   }).options({ abortEarly: false });
 
-  const { error, value } = schema.validate({ pays, codePostal, limitResult });
+  const { error } = schema.validate({ pays, codePostal, limitResult });
 
   if (error) {
     const arrayError = error.details.map((value) => {
@@ -71,7 +73,7 @@ export const isValideCreateTicket = ({
   destPays,
   poids,
   nbColis,
-}): { status: boolean; messages?: Array<string> } => {
+}: RelayCreateTicketType): { status: boolean; messages?: Array<string> } => {
   const patternISOCountry: RegExp = /^[A-Z]{2}$/;
   const patternAdress: RegExp = /^[0-9A-Z_'., -]{2,32}$/;
   const patternVille: RegExp = /^[A-Z_' -]{2,26}$/;
@@ -208,7 +210,7 @@ export const isValideCreateTicket = ({
       }),
   }).options({ abortEarly: false });
 
-  const { error, value } = schema.validate({
+  const { error } = schema.validate({
     modeCol,
     modeLiv,
     expeLangage,

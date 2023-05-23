@@ -1,13 +1,14 @@
-import axios from "axios";
-import xml2js from "xml2js";
 import { RelaySearchType } from "../type/RelaySearchType";
-import { ObjectToString, createHash } from "../utils/helper";
+import { RelayCreateTicketType } from "../type/RelayCreateTicketType"
+import { createMd5HashByObj, xmlToJson } from "../utils/helper";
 import { isValideSearchRelayData , isValideCreateTicket} from "../utils/validation";
 import express from "express";
 import {
   formatePointRelay,
-  getTemplateDataXml,
+  getTemplateDataXmlForSearchRelay,
+  getTemplateDataXmlForCreateTicket
 } from "../utils/pointRelayFormat";
+import { MondialRelayService } from "../services/MondialRelay.service";
 
 export async function searchPointRelay(
   req: express.Request,
@@ -15,13 +16,6 @@ export async function searchPointRelay(
 ) {
   const { pays, codePostal, limitResult } = req.body;
   const { ENSEIGN, KEY_PRIVATE } = process.env;
-
-  const isValid = isValideSearchRelayData({ pays, codePostal, limitResult });
-
-  if (!isValid.status) {
-    res.status(400).send({ messages: isValid.messages });
-    return;
-  }
 
   const relay: RelaySearchType = {
     enseign: ENSEIGN,
@@ -31,30 +25,33 @@ export async function searchPointRelay(
     kPrivate: KEY_PRIVATE,
   };
 
-  const concatenateValues: string = ObjectToString(relay);
-  const hash: string = createHash(concatenateValues);
+  const isValid = isValideSearchRelayData(relay);
+
+  if (!isValid.status) {
+    res.status(400).send({ messages: isValid.messages });
+    return;
+  }
+
+  const hash: string = createMd5HashByObj(relay);
 
   try {
-    const url: string = "https://api.mondialrelay.com/Web_Services.asmx";
-    const action: string =
-      "http://www.mondialrelay.fr/webservice/WSI4_PointRelais_Recherche";
-    const data: string = getTemplateDataXml(relay, hash);
+  
+    const data: string = getTemplateDataXmlForSearchRelay(relay, hash);
 
-    const config: object = {
-      headers: {
-        "Content-Type": "text/xml; charset=utf-8",
-        SOAPAction: action,
-      },
-    };
+    const response = await MondialRelayService.getPointRelay(data);
 
-    const response = await axios.post(url, data, config);
+    if(!response.status){
+      res.status(500).send({ messages: "Erreur lors de l'apel api de mondial relais" });
+    }
 
-    const xmlResponse = response.data;
-    const parser = new xml2js.Parser({ explicitArray: false });
-    const parsedResponse = await parser.parseStringPromise(xmlResponse);
+    const parsedResponse = await xmlToJson(response.data);
+
+    if(!parsedResponse.status){
+      res.status(500).send({ messages: "Erreur lors de la conversion xml en json" });
+    }
 
     const pointsRelay: Object =
-      parsedResponse["soap:Envelope"]["soap:Body"][
+      parsedResponse.json["soap:Envelope"]["soap:Body"][
         "WSI4_PointRelais_RechercheResponse"
       ]["WSI4_PointRelais_RechercheResult"]["PointsRelais"][
         "PointRelais_Details"
@@ -75,12 +72,56 @@ export async function createTicketRelay(
   const { modeCol,modeLiv,expeLangage,expeAd1,expeAd3,expeVille,expeCP,expePays,destLangage,destAd1,destAd3,destVille,destCp,destPays,poids,nbColis } = req.body;
   const { ENSEIGN, KEY_PRIVATE } = process.env;
 
+  const ticket: RelayCreateTicketType = {
+    enseign: ENSEIGN,
+    modeCol,
+    modeLiv,
+    expeLangage,
+    expeAd1,
+    expeAd3,
+    expeVille,
+    expeCP,
+    expePays,
+    destLangage,
+    destAd1,
+    destAd3,
+    destVille,
+    destCp,
+    destPays,
+    poids,
+    nbColis,
+    kPrivate: KEY_PRIVATE
+  }
   
-  const isValid = isValideCreateTicket({modeCol,modeLiv,expeLangage,expeAd1,expeAd3,expeVille,expeCP,expePays,destLangage,destAd1,destAd3,destVille,destCp,destPays,poids,nbColis});
+  const isValid = isValideCreateTicket(ticket);
 
   if (!isValid.status) {
     res.status(400).send({ messages: isValid.messages });
     return;
+  }
+
+  const hash: string = createMd5HashByObj(ticket);
+
+  try {
+    const data: string = getTemplateDataXmlForCreateTicket(ticket, hash);
+
+
+    const response = await MondialRelayService.createTicketRelay(data);
+
+    if(!response.status){
+      res.status(500).send({ messages: "Erreur lors de l'apel api de mondial relais" });
+    }
+
+    const parsedResponse = await xmlToJson(response.data);
+
+    if(!parsedResponse.status){
+      res.status(500).send({ messages: "Erreur lors de la conversion xml en json" });
+    }
+
+    res.send(parsedResponse.json);
+
+  } catch (error) {
+    res.status(500).send("Erreur lors de la recherche de points relay");
   }
 
 }

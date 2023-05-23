@@ -1,7 +1,8 @@
+import { RelayCreateTicketType } from "../type/RelayCreateTicketType";
 import { RelaySearchType } from "../type/RelaySearchType";
 import { dateFormat } from "./helper";
 
-export const getDataXml = (relay: RelaySearchType, hash: string): string => {
+export const getDataXmlForSearchRelay = (relay: RelaySearchType, hash: string): string => {
     const xml = 
   ` <Enseigne>${relay.enseign}</Enseigne>
     <Pays>${relay.pays}</Pays>
@@ -12,12 +13,12 @@ export const getDataXml = (relay: RelaySearchType, hash: string): string => {
     return xml;
   }
 
-  export const getTemplateDataXml = (relay: RelaySearchType, hash: string): string => {
+  export const getTemplateDataXmlForSearchRelay = (relay: RelaySearchType, hash: string): string => {
     const xml = `<?xml version="1.0" encoding="utf-8"?>
     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
       <soap:Body>
         <WSI4_PointRelais_Recherche xmlns="http://www.mondialrelay.fr/webservice/">
-         ${getDataXml(relay, hash)}
+         ${getDataXmlForSearchRelay(relay, hash)}
         </WSI4_PointRelais_Recherche>
       </soap:Body>
     </soap:Envelope>`;
@@ -94,3 +95,40 @@ export const formatePointRelay = (pointsRelay: Object): Object => {
     })
     return pointsRelay;
   }
+
+export const getDataXmlForCreateTicketRelay = (ticket: RelayCreateTicketType, hash: string): string => {
+  const xml = `
+  <Enseigne>${ticket.enseign}</Enseigne>
+  <ModeCol>${ticket.modeCol}</ModeCol>
+  <ModeLiv>${ticket.modeLiv}</ModeLiv>
+  <Expe_Langage>${ticket.expeLangage}</Expe_Langage>
+  <Expe_Ad1>${ticket.expeAd1}</Expe_Ad1>
+  <Expe_Ad3>${ticket.expeAd3}</Expe_Ad3>
+  <Expe_Ville>${ticket.expeVille}</Expe_Ville>
+  <Expe_CP>${ticket.expeCP}</Expe_CP>
+  <Expe_Pays>${ticket.expePays}</Expe_Pays>
+  <Dest_Langage>${ticket.destLangage}</Dest_Langage>
+  <Dest_Ad1>${ticket.destAd1}</Dest_Ad1>
+  <Dest_Ad3>${ticket.destAd3}</Dest_Ad3>
+  <Dest_Ville>${ticket.destVille}</Dest_Ville>
+  <Dest_CP>${ticket.destCp}</Dest_CP>
+  <Dest_Pays>${ticket.destPays}</Dest_Pays>
+  <Poids>${ticket.poids}</Poids>
+  <NbColis>${ticket.nbColis}</NbColis>
+  <Security>${hash}</Security>`;
+  return xml;
+}
+
+export const getTemplateDataXmlForCreateTicket = (ticket: RelayCreateTicketType, hash: string): string => {
+  const xml = `
+  <?xml version="1.0" encoding="utf-8"?>
+  <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+      <WSI2_CreationEtiquette xmlns="http://www.mondialrelay.fr/webservice/">
+        ${getDataXmlForCreateTicketRelay}
+      </WSI2_CreationEtiquette>
+    </soap:Body>
+  </soap:Envelope`
+
+  return xml;
+}
