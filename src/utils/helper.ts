@@ -33,3 +33,27 @@ export const ObjectToString = (obj: Object) => {
         return prev.toString();
       });
 }
+
+
+export const isValideData = ({pays, codePostal, limitResult, ville}): {status: boolean, msg?: string} => {
+    const regexPaysIso: RegExp = /^[A-Za-z]{2}$/;
+    const regexVille: RegExp = /^[A-Za-z_'-]{2,25}$/;
+
+    if(pays === undefined || codePostal === undefined || limitResult === undefined) {
+      return { status: false, msg: "Les champs pays, code postal et la limite de resultats sont obligatoires"};
+    }
+    if(!regexPaysIso.test(pays)) {
+      return { status: false, msg: "Le pays envoyé n'est pas conforme"};
+    }
+    if(!regexVille.test(ville)) {
+        return { status: false, msg: "La ville envoyé n'est pas conforme"};
+    }
+    if(isNaN(limitResult) || limitResult > 30) {
+      return { status: false, msg: "Le nombre doit être inférieur à 30"};
+
+    }
+    if(isNaN(codePostal) || codePostal.length != 5) {
+        return { status: false, msg: "Le nombre doit être égal à 5"};
+    }
+    return { status: true }
+}

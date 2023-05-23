@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { config } from 'dotenv'
 import xml2js from "xml2js";
 import { RelaySearchType } from "./type/RelaySearchType";
-import { ObjectToString, getTemplateDataXml } from "./utils/helper";
+import { ObjectToString, getTemplateDataXml, isValideData } from "./utils/helper";
 
 const app = express();
 const port = 3300;
@@ -20,28 +20,11 @@ app.post(
     const {pays, codePostal, limitResult, ville} = req.body;
     const {ENSEIGN, KEY_PRIVATE} = process.env;
 
-    const regexPaysIso: RegExp = /^[A-Za-z]{2}$/;
-    const regexVille: RegExp = /^[A-Za-z_'-]{2,25}$/;
-
-    if(pays === undefined || codePostal === undefined || limitResult === undefined) {
-      res.status(400).send({message: "Les champs pays, code postal et la limite de resultats sont obligatoires"});
-      return;
-    }
-    if(!regexPaysIso.test(pays)) {
-      res.status(400).send({message: "Le pays envoyé n'est pas conforme"});
-      return;
-    }
-    if(!regexVille.test(ville)) {
-      res.status(400).send({message: "La ville envoyé n'est pas conforme"});
-      return;
-    }
-    if(isNaN(limitResult) || limitResult > 30) {
-      res.status(400).send({message: "Le nombre doit être inférieur à 30"});
-      return;
-    }
-    if(isNaN(codePostal) || codePostal.length != 5) {
-      res.status(400).send({message: "Le nombre doit être égale à 5"});
-      return;
+    const isValid = isValideData({pays, codePostal, limitResult, ville});
+    
+    if(!isValid.status){
+      res.status(400).send({msg: isValid.msg});
+      return
     }
 
     const relay: RelaySearchType = {
