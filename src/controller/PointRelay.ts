@@ -1,11 +1,13 @@
 import axios from "axios";
-import crypto from "crypto";
 import xml2js from "xml2js";
 import { RelaySearchType } from "../type/RelaySearchType";
-import {ObjectToString} from "../utils/helper";
+import { ObjectToString, createHash } from "../utils/helper";
 import { isValideSearchRelayData } from "../utils/validation";
 import express from "express";
-import { formatePointRelay, getTemplateDataXml } from "../utils/pointRelayFormat";
+import {
+  formatePointRelay,
+  getTemplateDataXml,
+} from "../utils/pointRelayFormat";
 
 export async function searchPointRelay(
   req: express.Request,
@@ -30,12 +32,7 @@ export async function searchPointRelay(
   };
 
   const concatenateValues: string = ObjectToString(relay);
-
-  const hash: string = crypto
-    .createHash("md5")
-    .update(concatenateValues)
-    .digest("hex")
-    .toUpperCase();
+  const hash: string = createHash(concatenateValues);
 
   try {
     const url: string = "https://api.mondialrelay.com/Web_Services.asmx";
@@ -76,5 +73,5 @@ export async function createTicketRelay(
   res: express.Response
 ) {
   const { ENSEIGN, KEY_PRIVATE } = process.env;
-  res.send(true)
+  res.send(true);
 }
