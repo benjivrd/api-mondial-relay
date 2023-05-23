@@ -2,13 +2,10 @@ import axios from "axios";
 import crypto from "crypto";
 import xml2js from "xml2js";
 import { RelaySearchType } from "../type/RelaySearchType";
-import {
-  ObjectToString,
-  getTemplateDataXml,
-  isValideData,
-  formatePointRelay,
-} from "../utils/helper";
+import {ObjectToString} from "../utils/helper";
+import { isValideSearchRelayData } from "../utils/validation";
 import express from "express";
+import { formatePointRelay, getTemplateDataXml } from "../utils/pointRelayFormat";
 
 export async function searchPointRelay(
   req: express.Request,
@@ -17,7 +14,7 @@ export async function searchPointRelay(
   const { pays, codePostal, limitResult } = req.body;
   const { ENSEIGN, KEY_PRIVATE } = process.env;
 
-  const isValid = isValideData({ pays, codePostal, limitResult });
+  const isValid = isValideSearchRelayData({ pays, codePostal, limitResult });
 
   if (!isValid.status) {
     res.status(400).send({ messages: isValid.messages });
@@ -72,4 +69,12 @@ export async function searchPointRelay(
   } catch (error) {
     res.status(500).send("Erreur lors de la recherche de points relay");
   }
+}
+
+export async function createTicketRelay(
+  req: express.Request,
+  res: express.Response
+) {
+  const { ENSEIGN, KEY_PRIVATE } = process.env;
+  res.send(true)
 }
