@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { config } from 'dotenv'
 import xml2js from "xml2js";
 import { RelaySearchType } from "./type/RelaySearchType";
-import { ObjectToString, getTemplateDataXml, isValideData } from "./utils/helper";
+import { ObjectToString, getTemplateDataXml, isValideData, arrayHorraire } from "./utils/helper";
 
 const app = express();
 const port = 3300;
@@ -17,13 +17,13 @@ app.post(
   "/recherche-point-relay",
   async (req: express.Request, res: express.Response) => {
 
-    const {pays, codePostal, limitResult, ville} = req.body;
+    const {pays, codePostal, limitResult} = req.body;
     const {ENSEIGN, KEY_PRIVATE} = process.env;
 
-    const isValid = isValideData({pays, codePostal, limitResult, ville});
+    const isValid = isValideData({pays, codePostal, limitResult});
     
     if(!isValid.status){
-      res.status(400).send({msg: isValid.msg});
+      res.status(400).send({messages: isValid.messages});
       return
     }
 
@@ -31,12 +31,11 @@ app.post(
       enseign: ENSEIGN, 
       pays, 
       codePostal, 
-      ville: ville ? ville : null, 
       limitResult, 
       kPrivate: KEY_PRIVATE
     };
     
-    const concatenateValues: string = ObjectToString(relay);
+    const concatenateValues: string = ObjectToString(relay);    
 
     const hash: string = crypto.createHash("md5").update(concatenateValues).digest("hex").toUpperCase();
   
@@ -58,14 +57,21 @@ app.post(
       const parser = new xml2js.Parser({ explicitArray: false });
       const parsedResponse = await parser.parseStringPromise(xmlResponse);
 
-      const pointsRelay: JSON =
+      const pointsRelay: Object =
         parsedResponse["soap:Envelope"]["soap:Body"][
           "WSI4_PointRelais_RechercheResponse"
-        ]["WSI4_PointRelais_RechercheResult"]["PointsRelais"];
+        ]["WSI4_PointRelais_RechercheResult"]["PointsRelais"]["PointRelais_Details"];
+      
+      // const pointRelayObject = JSON.parse(pointsRelay);
 
-      res.json(pointsRelay);
+      const horraires = arrayHorraire(pointsRelay);
+
+      const jsonFormatted = {
+        horraires,
+      }
+      
+      res.json(jsonFormatted);
     } catch (error) {
-      console.error(error.message);
       res.status(500).send("Erreur lors de la recherche de points relay");
     }
   }

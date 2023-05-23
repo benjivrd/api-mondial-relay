@@ -1,11 +1,11 @@
 import { RelaySearchType } from "../type/RelaySearchType";
+import Joi from "joi";
 
 export const getDataXml = (relay: RelaySearchType, hash: string): string => {
     const xml = 
   ` <Enseigne>${relay.enseign}</Enseigne>
     <Pays>${relay.pays}</Pays>
     <CP>${relay.codePostal}</CP>
-    ${relay.ville && `<Ville>${relay.ville}</Ville>`}
     <NombreResultats>${relay.limitResult}</NombreResultats>
     <Security>${hash}</Security> `
 
@@ -35,25 +35,116 @@ export const ObjectToString = (obj: Object) => {
 }
 
 
-export const isValideData = ({pays, codePostal, limitResult, ville}): {status: boolean, msg?: string} => {
-    const regexPaysIso: RegExp = /^[A-Za-z]{2}$/;
-    const regexVille: RegExp = /^[A-Za-z_'-]{2,25}$/;
+export const isValideData = ({pays, codePostal, limitResult}): {status: boolean, messages?: Array<string>} => {
+    const schema = Joi.object({
+      pays: Joi.string()
+        .alphanum()
+        .min(2)
+        .max(30)
+        .required()
+        .messages({
+          'string.base': `pays: '${pays}' should be a type of 'text'`,
+          'string.empty': `pays: '${pays}' cannot be an empty field`,
+          'string.min': `pays: '${pays}' should have a minimum length of {#limit}`,
+          'string.max': `pays: '${pays}' should have a maximum length of {#limit}`,
+          'any.required': `pays: '${pays}' is a required field`
+        }),
+      codePostal: Joi.string() 
+        .min(5)
+        .max(5)
+        .required()
+        .messages({
+          'string.base': `codePostal: '${codePostal}' should be a type of 'text'`,
+          'string.empty': `codePostal: '${codePostal}' cannot be an empty field`,
+          'string.min': `codePostal: '${codePostal}' should have a minimum length of {#limit}`,
+          'string.max': `codePostal: '${codePostal}' should have a maximum length of {#limit}`,
+          'any.required': `codePostal: '${codePostal}' is a required field`
+        }),
+      limitResult: Joi.number()
+        .min(1)
+        .max(30)
+        .required()
+        .messages({
+          'number.base': `limitResult: '${limitResult}' should be a type of 'number'`,
+          'number.empty': `limitResult: '${limitResult}' cannot be an empty field`,
+          'number.min': `limitResult: '${limitResult}' should have a minimum length of {#limit}`,
+          'number.max': `limitResult: '${limitResult}' should have a maximum length of {#limit}`,
+          'any.required': `limitResult: '${limitResult}' is a required field`
+        })
+    }).options({abortEarly: false});
 
-    if(pays === undefined || codePostal === undefined || limitResult === undefined) {
-      return { status: false, msg: "Les champs pays, code postal et la limite de resultats sont obligatoires"};
-    }
-    if(!regexPaysIso.test(pays)) {
-      return { status: false, msg: "Le pays envoyé n'est pas conforme"};
-    }
-    if(!regexVille.test(ville)) {
-        return { status: false, msg: "La ville envoyé n'est pas conforme"};
-    }
-    if(isNaN(limitResult) || limitResult > 30) {
-      return { status: false, msg: "Le nombre doit être inférieur à 30"};
+    const {error, value} = schema.validate({ pays, codePostal, limitResult });
 
+    if(error) {
+      const arrayError = error.details.map((value) => {
+        return value.message;
+      });
+      return {status: false, messages: arrayError}
     }
-    if(isNaN(codePostal) || codePostal.length != 5) {
-        return { status: false, msg: "Le nombre doit être égal à 5"};
+
+    return {status: true}
+}
+
+export const dateFormat = (hourString: string) => {
+  return hourString.slice(0, 2).padStart(2, '0') + "h" + hourString.slice(2, 4);
+}
+
+export const arrayHorraire = (pointsRelay: Object) => {
+  const horraires = [];
+  Object.entries(pointsRelay).forEach(([i, value]) => {
+    const valueLundiMatin = value['Horaires_Lundi']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Lundi']['string'][0])}-${dateFormat(value['Horaires_Lundi']['string'][1])}`;
+    const valueLundiApresMidi = value['Horaires_Lundi']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Lundi']['string'][2])}-${dateFormat(value['Horaires_Lundi']['string'][3])}`;
+    
+    const valueMardiMatin = value['Horaires_Mardi']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Mardi']['string'][0])}-${dateFormat(value['Horaires_Mardi']['string'][1])}`;
+    const valueMardiApresMidi = value['Horaires_Mardi']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Mardi']['string'][2])}-${dateFormat(value['Horaires_Mardi']['string'][3])}`;
+    
+    const valueMercrediMatin = value['Horaires_Mercredi']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Mercredi']['string'][0])}-${dateFormat(value['Horaires_Mercredi']['string'][1])}`;
+    const valueMercrediApresMidi = value['Horaires_Mercredi']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Mercredi']['string'][2])}-${dateFormat(value['Horaires_Mercredi']['string'][3])}`;
+    
+    const valueJeudiMatin = value['Horaires_Jeudi']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Jeudi']['string'][0])}-${dateFormat(value['Horaires_Jeudi']['string'][1])}`;
+    const valueJeudiApresMidi = value['Horaires_Jeudi']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Jeudi']['string'][2])}-${dateFormat(value['Horaires_Jeudi']['string'][3])}`;
+    
+    const valueVendrediMatin = value['Horaires_Vendredi']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Vendredi']['string'][0])}-${dateFormat(value['Horaires_Vendredi']['string'][1])}`;
+    const valueVendrediApresMidi = value['Horaires_Vendredi']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Vendredi']['string'][2])}-${dateFormat(value['Horaires_Vendredi']['string'][3])}`;
+    
+    const valueSamediMatin = value['Horaires_Samedi']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Samedi']['string'][0])}-${dateFormat(value['Horaires_Samedi']['string'][1])}`;
+    const valueSamediApresMidi = value['Horaires_Samedi']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Samedi']['string'][2])}-${dateFormat(value['Horaires_Samedi']['string'][3])}`;
+    
+    const valueDimancheMatin = value['Horaires_Dimanche']['string'][0] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Dimanche']['string'][0])}-${dateFormat(value['Horaires_Dimanche']['string'][1])}`;
+    const valueDimancheApresMidi = value['Horaires_Dimanche']['string'][2] === '0000' ? 'Fermé' : `${dateFormat(value['Horaires_Dimanche']['string'][2])}-${dateFormat(value['Horaires_Dimanche']['string'][3])}`;
+    
+    const horraire = {
+      lundi: {
+        matin: valueLundiMatin,
+        apresMidi: valueLundiApresMidi,
+      },
+      mardi: {
+        matin: valueMardiMatin,
+        apresMidi: valueMardiApresMidi,
+      },
+      mercredi: {
+        matin: valueMercrediMatin,
+        apresMidi: valueMercrediApresMidi,
+      },
+      jeudi: {
+        matin: valueJeudiMatin,
+        apresMidi: valueJeudiApresMidi,
+      },
+      vendredi: {
+        matin: valueVendrediMatin,
+        apresMidi: valueVendrediApresMidi,
+      },
+      samedi: {
+        matin: valueSamediMatin,
+        apresMidi: valueSamediApresMidi,
+      },
+      dimanche: {
+        matin: valueDimancheMatin,
+        apresMidi: valueDimancheApresMidi,
+      },
     }
-    return { status: true }
+
+    horraires.push(horraire);
+  })
+  return horraires;
 }
