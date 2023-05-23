@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { config } from 'dotenv'
 import xml2js from "xml2js";
 import { RelaySearchType } from "./type/RelaySearchType";
+import { getTemplateDataXml } from "./utils/helper";
 
 const app = express();
 const port = 3300;
@@ -15,6 +16,7 @@ app.use(express.json());
 app.post(
   "/recherche-point-relay",
   async (req: express.Request, res: express.Response) => {
+
     const {pays, codePostal, limitResult, ville} = req.body;
     const {ENSEIGN, KEY_PRIVATE} = process.env;
 
@@ -42,11 +44,17 @@ app.post(
       return;
     }
 
-    const relay: RelaySearchType = {enseign: ENSEIGN, pays, codePostal, ville: ville ? ville : null, limitResult, kPrivate: KEY_PRIVATE};
+    const relay: RelaySearchType = {
+      enseign: ENSEIGN, 
+      pays, 
+      codePostal, 
+      ville: ville ? ville : null, 
+      limitResult, 
+      kPrivate: KEY_PRIVATE
+    };
 
     const hash = crypto.createHash("md5");
     
-
     const concatenateValues = Object.values(relay).reduce((prev, next) => {
       if(next !== null) {
         return prev.toString() + next.toString();
@@ -59,28 +67,11 @@ app.post(
     hash.update(concatenateValues as string);
     const finalHash = hash.digest("hex").toUpperCase();
 
-    console.log(finalHash);
 
     try {
       const url = "https://api.mondialrelay.com/Web_Services.asmx";
-      const action =
-        "http://www.mondialrelay.fr/webservice/WSI4_PointRelais_Recherche";
-      const data = `<?xml version="1.0" encoding="utf-8"?>
-      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-        <soap:Body>
-          <WSI4_PointRelais_Recherche xmlns="http://www.mondialrelay.fr/webservice/">
-            <Enseigne>${relay.enseign}</Enseigne>
-            <Pays>${relay.pays}</Pays>
-            <CP>${relay.codePostal}</CP>
-            ${relay.ville && `<Ville>${relay.ville}</Ville>`}
-            <NombreResultats>${relay.limitResult}</NombreResultats>
-            <Security>${finalHash}</Security>
-          </WSI4_PointRelais_Recherche>
-        </soap:Body>
-      </soap:Envelope>`;
-
-      console.log(data);
-
+      const action = "http://www.mondialrelay.fr/webservice/WSI4_PointRelais_Recherche";
+      const data = getTemplateDataXml(relay, finalHash);
 
       const config = {
         headers: {
@@ -90,8 +81,6 @@ app.post(
       };
 
       const response = await axios.post(url, data, config);
-
-      console.log(response.data);
 
       const xmlResponse = response.data;
       const parser = new xml2js.Parser({ explicitArray: false });
