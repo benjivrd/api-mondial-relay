@@ -53,16 +53,16 @@ app.post(
       kPrivate: KEY_PRIVATE
     };
     
-    const concatenateValues = ObjectToString(relay);
+    const concatenateValues: string = ObjectToString(relay);
 
-    const hash = crypto.createHash("md5").update(concatenateValues as string).digest("hex").toUpperCase();
+    const hash: string = crypto.createHash("md5").update(concatenateValues).digest("hex").toUpperCase();
   
     try {
-      const url = "https://api.mondialrelay.com/Web_Services.asmx";
-      const action = "http://www.mondialrelay.fr/webservice/WSI4_PointRelais_Recherche";
-      const data = getTemplateDataXml(relay, hash);
+      const url: string = "https://api.mondialrelay.com/Web_Services.asmx";
+      const action: string = "http://www.mondialrelay.fr/webservice/WSI4_PointRelais_Recherche";
+      const data: string = getTemplateDataXml(relay, hash);
 
-      const config = {
+      const config: object = {
         headers: {
           "Content-Type": "text/xml; charset=utf-8",
           SOAPAction: action,
@@ -75,7 +75,7 @@ app.post(
       const parser = new xml2js.Parser({ explicitArray: false });
       const parsedResponse = await parser.parseStringPromise(xmlResponse);
 
-      const pointsRelay =
+      const pointsRelay: JSON =
         parsedResponse["soap:Envelope"]["soap:Body"][
           "WSI4_PointRelais_RechercheResponse"
         ]["WSI4_PointRelais_RechercheResult"]["PointsRelais"];
