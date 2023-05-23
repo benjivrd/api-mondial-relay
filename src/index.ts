@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { config } from 'dotenv'
 import xml2js from "xml2js";
 import { RelaySearchType } from "./type/RelaySearchType";
-import { getTemplateDataXml } from "./utils/helper";
+import { ObjectToString, getTemplateDataXml } from "./utils/helper";
 
 const app = express();
 const port = 3300;
@@ -52,26 +52,15 @@ app.post(
       limitResult, 
       kPrivate: KEY_PRIVATE
     };
-
-    const hash = crypto.createHash("md5");
     
-    const concatenateValues = Object.values(relay).reduce((prev, next) => {
-      if(next !== null) {
-        return prev.toString() + next.toString();
-      }
-      return prev.toString();
-    });
+    const concatenateValues = ObjectToString(relay);
 
-    console.log(concatenateValues);
-
-    hash.update(concatenateValues as string);
-    const finalHash = hash.digest("hex").toUpperCase();
-
-
+    const hash = crypto.createHash("md5").update(concatenateValues as string).digest("hex").toUpperCase();
+  
     try {
       const url = "https://api.mondialrelay.com/Web_Services.asmx";
       const action = "http://www.mondialrelay.fr/webservice/WSI4_PointRelais_Recherche";
-      const data = getTemplateDataXml(relay, finalHash);
+      const data = getTemplateDataXml(relay, hash);
 
       const config = {
         headers: {
