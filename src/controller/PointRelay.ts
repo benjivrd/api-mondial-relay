@@ -2,7 +2,7 @@ import axios from "axios";
 import xml2js from "xml2js";
 import { RelaySearchType } from "../type/RelaySearchType";
 import { ObjectToString, createHash } from "../utils/helper";
-import { isValideSearchRelayData } from "../utils/validation";
+import { isValideSearchRelayData , isValideCreateTicket} from "../utils/validation";
 import express from "express";
 import {
   formatePointRelay,
@@ -72,6 +72,15 @@ export async function createTicketRelay(
   req: express.Request,
   res: express.Response
 ) {
+  const { modeCol,modeLiv,expeLangage,expeAd1,expeAd3,expeVille,expeCP,expePays,destLangage,destAd1,destAd3,destVille,destCp,destPays,poids,nbColis } = req.body;
   const { ENSEIGN, KEY_PRIVATE } = process.env;
-  res.send(true);
+
+  
+  const isValid = isValideCreateTicket({modeCol,modeLiv,expeLangage,expeAd1,expeAd3,expeVille,expeCP,expePays,destLangage,destAd1,destAd3,destVille,destCp,destPays,poids,nbColis});
+
+  if (!isValid.status) {
+    res.status(400).send({ messages: isValid.messages });
+    return;
+  }
+
 }
