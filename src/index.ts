@@ -2,7 +2,7 @@ import express from "express";
 import { config } from 'dotenv'
 import { searchPointRelay, createTicketRelay } from "./controller/PointRelay";
 import morgan from "morgan";
-
+import cors from "cors";
 
 const app = express();
 const port = 3300;
@@ -11,6 +11,7 @@ config();
 
 app.use(express.json());
 app.use(morgan("combined"));
+app.use(cors({origin: 'http://localhost:5175'}))
 
 app.post("/recherche-point-relay",searchPointRelay);
 app.post("/create-ticket-relay",createTicketRelay);
