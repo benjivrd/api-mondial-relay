@@ -12,9 +12,10 @@ export type RelayCreateTicketType = {
     destAd1: string
     destAd3: string
     destVille: string
-    destCp: string
+    destCP: string
     destPays: string
     poids: number
     nbColis: number
+    crtValeur : number
     kPrivate: string;
 }

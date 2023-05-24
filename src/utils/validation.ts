@@ -69,7 +69,7 @@ export const isValideCreateTicket = ({
   destAd1,
   destAd3,
   destVille,
-  destCp,
+  destCP,
   destPays,
   poids,
   nbColis,
@@ -176,13 +176,13 @@ export const isValideCreateTicket = ({
         "string.empty": `  destVille: '${destVille}' cannot be an empty field`,
         "any.required": `  destVille: '${destVille}' is a required field`,
       }),
-    destCp: Joi.string()
+    destCP: Joi.string()
       .pattern(patternCp)
       .required()
       .messages({
-        "string.base": `  destCp: '${destCp}' should be a type of 'text'`,
-        "string.empty": `  destCp: '${destCp}' cannot be an empty field`,
-        "any.required": `  destCp: '${destCp}' is a required field`,
+        "string.base": `  destCP: '${destCP}' should be a type of 'text'`,
+        "string.empty": `  destCP: '${destCP}' cannot be an empty field`,
+        "any.required": `  destCP: '${destCP}' is a required field`,
       }),
     destPays: Joi.string()
       .pattern(patternISOCountry)
@@ -193,7 +193,7 @@ export const isValideCreateTicket = ({
         "any.required": ` destPays: '${destPays}' is a required field`,
       }),
     poids: Joi.string()
-      .pattern(/^[0-9]{3,7}.?[0-9]{0,2}$/)
+      .pattern(/^[0-9]{2,7}\.?[0-9]{0,2}$/)
       .required()
       .messages({
         "string.base": `  poids: '${poids}' should be a type of 'text'`,
@@ -223,7 +223,7 @@ export const isValideCreateTicket = ({
     destAd1,
     destAd3,
     destVille,
-    destCp,
+    destCP,
     destPays,
     poids,
     nbColis,
