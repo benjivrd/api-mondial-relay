@@ -13,6 +13,9 @@ app.use(express.json());
 app.use(morgan("combined"));
 app.use(cors({origin: 'http://localhost:5173'}))
 
+app.get('/' , (_req: express.Request, res: express.Response) => {
+res.send('Hello API')
+})
 app.post("/recherche-point-relay",searchPointRelay);
 app.post("/create-ticket-relay",createTicketRelay);
 
