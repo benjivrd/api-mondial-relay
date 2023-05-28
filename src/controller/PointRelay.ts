@@ -19,7 +19,8 @@ export async function searchPointRelay(
   res: express.Response
 ) {
   const { pays, codePostal, limitResult } = req.body;
-  const { ENSEIGN, KEY_PRIVATE } = process.env;
+  const ENSEIGN = "BDTEST13";
+  const KEY_PRIVATE = "PrivateK";
 
   const relay: RelaySearchType = {
     enseign: ENSEIGN,
@@ -94,7 +95,10 @@ export async function createTicketRelay(
     poids,
     nbColis,
   } = req.body;
-  const { ENSEIGN, KEY_PRIVATE } = process.env;
+  
+  const ENSEIGN = "BDTEST13";
+  const KEY_PRIVATE = "PrivateK";
+
 
   const ticket: RelayCreateTicketType = {
     enseign: ENSEIGN,

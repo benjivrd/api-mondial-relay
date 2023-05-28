@@ -21,7 +21,7 @@ export const isValideSearchRelayData = ({
         "any.required": `pays: '${pays}' is a required field`,
       }),
     codePostal: Joi.string()
-      .min(5)
+      .min(4)
       .max(5)
       .required()
       .messages({

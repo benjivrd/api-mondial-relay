@@ -5,17 +5,18 @@ import morgan from "morgan";
 import cors from "cors";
 
 const app = express();
-const port = 3300;
+const port = 3400;
 
 config();
 
 app.use(express.json());
 app.use(morgan("combined"));
-app.use(cors({origin: 'http://localhost:5173'}))
+app.use(cors({origin: "*"}))
 
 app.get('/' , (_req: express.Request, res: express.Response) => {
 res.send('Hello API')
 })
+
 app.post("/recherche-point-relay",searchPointRelay);
 app.post("/create-ticket-relay",createTicketRelay);
 
